@@ -6,7 +6,6 @@ const usersCollection = client.db(DB_NAME).collection('users');
 
 export const registerUser = async (req, res) => {
     try {
-        console.log('Register request received with body:', req.body);
 
         const { username, name, surnames, email, password, role } = req.body;
 
@@ -30,7 +29,6 @@ export const registerUser = async (req, res) => {
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        console.log('Password hashed successfully for:', username);
 
         const result = await usersCollection.insertOne({
             username,
@@ -43,8 +41,6 @@ export const registerUser = async (req, res) => {
             updatedAt: new Date(),
         });
 
-        console.log('User registered successfully:', result.insertedId);
-
         res.status(201).json({ message: 'User registered successfully', userId: result.insertedId });
     } catch (error) {
         console.error('Error when registering the user:', error.message);
@@ -54,7 +50,6 @@ export const registerUser = async (req, res) => {
 
 export const loginUser = async (req, res) => {
     try {
-        console.log('Login request received with body:', req.body);
 
         const { username, email, password } = req.body;
 
@@ -78,13 +73,9 @@ export const loginUser = async (req, res) => {
             return res.status(401).json({ message: 'Incorrect password' });
         }
 
-        console.log('User authenticated successfully:', { userId: user._id, role: user.role });
-
         const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET, {
             expiresIn: '1h',
         });
-
-        console.log('JWT generated for user:', { userId: user._id });
 
         res.cookie('authToken', token, {
             httpOnly: true,
@@ -101,7 +92,6 @@ export const loginUser = async (req, res) => {
 
 export const logoutUser = (req, res) => {
     try {
-        console.log('Logout request received');
         res.clearCookie('authToken');
         res.status(200).json({ message: 'Session closed successfully' });
     } catch (error) {
