@@ -7,7 +7,7 @@ const DB_USER = process.env.MONGO_USERNAME;
 const DB_PASS = process.env.MONGO_PASSWORD;
 const DB_NAME = process.env.MONGO_DATABASE;
 const DB_CLUSTER = process.env.MONGO_CLUSTER;
-const DB_URI = `mongodb+srv://${DB_USER}:${DB_PASS}@${DB_CLUSTER}/${DB_NAME}?retryWrites=true&w=majority`;
+const DB_URI = `mongodb+srv://${DB_USER}:${DB_PASS}@${DB_CLUSTER}/${DB_NAME}?retryWrites=true&w=majority&ssl=true`;
 
 const client = new MongoClient(DB_URI, {
     serverApi: {
