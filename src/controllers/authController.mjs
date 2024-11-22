@@ -6,25 +6,31 @@ const usersCollection = client.db(DB_NAME).collection('users');
 
 export const registerUser = async (req, res) => {
     try {
+        console.log('Register request received with body:', req.body);
+
         const { username, name, surnames, email, password, role } = req.body;
 
         if (!username || !name || !surnames || !email || !password || !role) {
+            console.error('Missing required fields:', req.body);
             return res.status(400).json({ message: 'All fields are required' });
         }
 
         const existingUser = await usersCollection.findOne({ $or: [{ username }, { email }] });
         if (existingUser) {
-            return res.status(400).json({ message: 'The user name or e-mail already exists' });
+            console.error('User already exists:', { username, email });
+            return res.status(400).json({ message: 'The username or email already exists' });
         }
 
         const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
         if (!passwordRegex.test(password)) {
+            console.error('Password validation failed for:', username);
             return res.status(400).json({
-                message: 'The password must have at least 8 characters, one uppercase, one lowercase, one number and one special character.',
+                message: 'The password must have at least 8 characters, one uppercase, one lowercase, one number, and one special character.',
             });
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
+        console.log('Password hashed successfully for:', username);
 
         const result = await usersCollection.insertOne({
             username,
@@ -37,18 +43,24 @@ export const registerUser = async (req, res) => {
             updatedAt: new Date(),
         });
 
-        res.status(201).json({ message: 'Registered user', userId: result.insertedId });
+        console.log('User registered successfully:', result.insertedId);
+
+        res.status(201).json({ message: 'User registered successfully', userId: result.insertedId });
     } catch (error) {
-        res.status(500).json({ message: 'Error when registering the user', error });
+        console.error('Error when registering the user:', error.message);
+        res.status(500).json({ message: 'Error when registering the user', error: error.message });
     }
 };
 
 export const loginUser = async (req, res) => {
     try {
+        console.log('Login request received with body:', req.body);
+
         const { username, email, password } = req.body;
 
         if (!password || (!username && !email)) {
-            return res.status(400).json({ message: 'Username/email and password required' });
+            console.error('Missing username/email or password');
+            return res.status(400).json({ message: 'Username/email and password are required' });
         }
 
         const user = await usersCollection.findOne({
@@ -56,17 +68,23 @@ export const loginUser = async (req, res) => {
         });
 
         if (!user) {
+            console.error('User not found for username/email:', { username, email });
             return res.status(404).json({ message: 'User not found' });
         }
 
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
+            console.error('Invalid password for username/email:', { username, email });
             return res.status(401).json({ message: 'Incorrect password' });
         }
+
+        console.log('User authenticated successfully:', { userId: user._id, role: user.role });
 
         const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET, {
             expiresIn: '1h',
         });
+
+        console.log('JWT generated for user:', { userId: user._id });
 
         res.cookie('authToken', token, {
             httpOnly: true,
@@ -74,13 +92,20 @@ export const loginUser = async (req, res) => {
             sameSite: 'strict',
         });
 
-        res.status(200).json({ message: 'Successful login' });
+        res.status(200).json({ message: 'Login successful' });
     } catch (error) {
-        res.status(500).json({ message: 'Error logging in', error });
+        console.error('Error during login:', error.message);
+        res.status(500).json({ message: 'Error logging in', error: error.message });
     }
 };
 
 export const logoutUser = (req, res) => {
-    res.clearCookie('authToken');
-    res.status(200).json({ message: 'Session closed correctly' });
+    try {
+        console.log('Logout request received');
+        res.clearCookie('authToken');
+        res.status(200).json({ message: 'Session closed successfully' });
+    } catch (error) {
+        console.error('Error during logout:', error.message);
+        res.status(500).json({ message: 'Error logging out', error: error.message });
+    }
 };
