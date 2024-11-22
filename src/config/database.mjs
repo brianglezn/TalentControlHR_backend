@@ -7,7 +7,7 @@ const DB_USER = process.env.MONGO_USERNAME;
 const DB_PASS = process.env.MONGO_PASSWORD;
 const DB_NAME = process.env.MONGO_DATABASE;
 const DB_CLUSTER = process.env.MONGO_CLUSTER;
-const DB_URI = `mongodb+srv://${DB_USER}:${DB_PASS}@${DB_CLUSTER}/${DB_NAME}?retryWrites=true&w=majority&ssl=true`;
+const DB_URI = `mongodb+srv://${DB_USER}:${DB_PASS}@${DB_CLUSTER}/${DB_NAME}?retryWrites=true&w=majority&tls=true`;
 
 const client = new MongoClient(DB_URI, {
     serverApi: {
@@ -32,5 +32,19 @@ export const runDatabase = async () => {
         throw error;
     }
 };
+
+const testConnection = async () => {
+    const client = new MongoClient(DB_URI);
+    try {
+        await client.connect();
+        console.log('Connected to MongoDB!');
+    } catch (error) {
+        console.error('Error connecting to MongoDB:', error.message);
+    } finally {
+        await client.close();
+    }
+};
+
+testConnection();
 
 export { client, DB_NAME };
