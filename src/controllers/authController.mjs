@@ -72,7 +72,7 @@ export const loginUser = async (req, res) => {
         res.cookie('authToken', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            sameSite: 'none',
         });
 
         res.status(200).json({ message: 'Login successful' });
