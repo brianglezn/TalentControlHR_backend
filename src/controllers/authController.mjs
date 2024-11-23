@@ -46,11 +46,9 @@ export const registerUser = async (req, res) => {
 
 export const loginUser = async (req, res) => {
     try {
-
         const { username, email, password } = req.body;
 
         if (!password || (!username && !email)) {
-            console.error('Missing username/email or password');
             return res.status(400).json({ message: 'Username/email and password are required' });
         }
 
@@ -59,13 +57,11 @@ export const loginUser = async (req, res) => {
         });
 
         if (!user) {
-            console.error('User not found for username/email:', { username, email });
             return res.status(404).json({ message: 'User not found' });
         }
 
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
-            console.error('Invalid password for username/email:', { username, email });
             return res.status(401).json({ message: 'Incorrect password' });
         }
 
@@ -83,6 +79,20 @@ export const loginUser = async (req, res) => {
     } catch (error) {
         console.error('Error during login:', error.message);
         res.status(500).json({ message: 'Error logging in', error: error.message });
+    }
+};
+
+export const verifySession = (req, res) => {
+    try {
+        const token = req.cookies.authToken;
+        if (!token) {
+            return res.status(401).json({ message: 'No token provided' });
+        }
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        return res.status(200).json({ isAuthenticated: true, user: decoded });
+    } catch (error) {
+        return res.status(401).json({ isAuthenticated: false, message: 'Invalid or expired token' });
     }
 };
 
