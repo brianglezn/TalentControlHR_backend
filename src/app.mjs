@@ -23,12 +23,16 @@ app.use((req, res, next) => {
     next();
 });
 
+app.get('/ping', (req, res) => {
+    res.status(200).send('pong');
+});
+
 import authRoutes from './routes/authRoutes.mjs';
 app.use('/api/auth', authRoutes);
 
 const port = 3000;
 app.listen(port, () => {
     if (process.env.NODE_ENV === 'development') {
-        console.log('Server running in development mode at http://localhost:3000}');
+        console.log('Server running in development mode at http://localhost:3000');
     }
 });
