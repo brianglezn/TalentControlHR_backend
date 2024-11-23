@@ -17,7 +17,7 @@ export const registerUser = async (req, res) => {
             return res.status(400).json({ message: 'The username or email already exists' });
         }
 
-        const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&#+-])[A-Za-z\d@$!%*?&#+-]{8,}$/;
         if (!passwordRegex.test(password)) {
             return res.status(400).json({
                 message: 'The password must have at least 8 characters, one uppercase, one lowercase, one number, and one special character.',
