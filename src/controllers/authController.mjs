@@ -6,23 +6,19 @@ const usersCollection = client.db(DB_NAME).collection('users');
 
 export const registerUser = async (req, res) => {
     try {
+        const { username, name, surnames, email, password } = req.body;
 
-        const { username, name, surnames, email, password, role } = req.body;
-
-        if (!username || !name || !surnames || !email || !password || !role) {
-            console.error('Missing required fields:', req.body);
+        if (!username || !name || !surnames || !email || !password) {
             return res.status(400).json({ message: 'All fields are required' });
         }
 
         const existingUser = await usersCollection.findOne({ $or: [{ username }, { email }] });
         if (existingUser) {
-            console.error('User already exists:', { username, email });
             return res.status(400).json({ message: 'The username or email already exists' });
         }
 
         const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
         if (!passwordRegex.test(password)) {
-            console.error('Password validation failed for:', username);
             return res.status(400).json({
                 message: 'The password must have at least 8 characters, one uppercase, one lowercase, one number, and one special character.',
             });
@@ -36,7 +32,7 @@ export const registerUser = async (req, res) => {
             surnames,
             email,
             password: hashedPassword,
-            role,
+            role: 'user',
             createdAt: new Date(),
             updatedAt: new Date(),
         });
