@@ -29,6 +29,8 @@ app.get('/ping', (req, res) => {
 
 import authRoutes from './routes/authRoutes.mjs';
 app.use('/api/auth', authRoutes);
+import userRoutes from './routes/userRoutes.mjs';
+app.use('/api/user', userRoutes);
 
 const port = 3000;
 app.listen(port, () => {
