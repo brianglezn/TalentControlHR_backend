@@ -29,43 +29,14 @@ export const getUserById = async (req, res) => {
     }
 };
 
-export const getUserByCompany = async (req, res) => {
-    const { companyId } = req.params;
-    try {
-        const db = client.db(DB_NAME);
-        const users = await db.collection(USERS_COLLECTION).find({ company: new ObjectId(companyId) }).toArray();
-        if (users.length === 0) {
-            return res.status(404).json({ message: 'No users found for the specified company' });
-        }
-        res.status(200).json(users);
-    } catch (error) {
-        res.status(500).json({ error: 'Error retrieving users by company', details: error.message });
-    }
-};
-
-export const getUserByTeam = async (req, res) => {
-    const { teamId } = req.params;
-    try {
-        const db = client.db(DB_NAME);
-        const users = await db.collection(USERS_COLLECTION).find({ team: new ObjectId(teamId) }).toArray();
-        if (users.length === 0) {
-            return res.status(404).json({ message: 'No users found for the specified team' });
-        }
-        res.status(200).json(users);
-    } catch (error) {
-        res.status(500).json({ error: 'Error retrieving users by team', details: error.message });
-    }
-};
-
 export const createUser = async (req, res) => {
-    const { username, name, surnames, email, password, role, company, team } = req.body;
+    const { username, name, surnames, email, password, role, company } = req.body;
+
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
-        
-        const db = client.db(DB_NAME);
 
+        const db = client.db(DB_NAME);
         const companyId = company ? new ObjectId(company) : null;
-        const teamId = team ? new ObjectId(team) : null;
 
         const newUser = {
             username,
@@ -75,7 +46,6 @@ export const createUser = async (req, res) => {
             password: hashedPassword,
             role,
             company: companyId,
-            team: teamId,
         };
 
         const result = await db.collection(USERS_COLLECTION).insertOne(newUser);

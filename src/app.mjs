@@ -31,6 +31,8 @@ import authRoutes from './routes/authRoutes.mjs';
 app.use('/api/auth', authRoutes);
 import userRoutes from './routes/userRoutes.mjs';
 app.use('/api/user', userRoutes);
+import companiesRoutes from './routes/companiesRoutes.mjs';
+app.use('/api/companies', companiesRoutes);
 
 const port = 3000;
 app.listen(port, () => {
