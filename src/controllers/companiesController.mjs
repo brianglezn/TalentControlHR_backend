@@ -166,7 +166,7 @@ export const getCompanyTeamsById = async (req, res) => {
         const db = client.db(DB_NAME);
 
         const company = await db.collection(COMPANIES_COLLECTION).findOne(
-            { _id: new ObjectId(id), "teams.teamId": new ObjectId(teamId) },
+            { _id: new ObjectId(id), "teams.teamId": teamId },
             { projection: { "teams.$": 1 } }
         );
 
@@ -187,7 +187,7 @@ export const getUsersFromTeam = async (req, res) => {
         const db = client.db(DB_NAME);
 
         const company = await db.collection(COMPANIES_COLLECTION).findOne(
-            { _id: new ObjectId(id), "teams.teamId": new ObjectId(teamId) },
+            { _id: new ObjectId(id), "teams.teamId": teamId }, 
             { projection: { "teams.$": 1 } }
         );
 
@@ -202,7 +202,7 @@ export const getUsersFromTeam = async (req, res) => {
             return res.status(404).json({ message: "No users found in the team" });
         }
 
-        const users = await db.collection("users").find({ _id: { $in: userIds } }).toArray();
+        const users = await db.collection("users").find({ _id: { $in: userIds.map(id => new ObjectId(id)) } }).toArray();
 
         res.status(200).json(users);
     } catch (error) {
@@ -217,21 +217,21 @@ export const addUserToTeam = async (req, res) => {
         const db = client.db(DB_NAME);
 
         const company = await db.collection(COMPANIES_COLLECTION).findOne(
-            { _id: new ObjectId(id), "teams.teamId": new ObjectId(teamId) }
+            { _id: new ObjectId(id), "teams.teamId": teamId } 
         );
 
         if (!company) {
             return res.status(404).json({ error: `Team with ID ${teamId} not found in the specified company with ID ${id}` });
         }
 
-        const team = company.teams.find(team => team.teamId.toString() === teamId);
-        if (team.users?.some(user => user.toString() === userId)) {
+        const team = company.teams.find(team => team.teamId === teamId);
+        if (team.users?.includes(userId)) {
             return res.status(400).json({ error: `User with ID ${userId} already belongs to the team with ID ${teamId}` });
         }
 
         const result = await db.collection(COMPANIES_COLLECTION).updateOne(
-            { _id: new ObjectId(id), "teams.teamId": new ObjectId(teamId) },
-            { $push: { "teams.$.users": new ObjectId(userId) } }
+            { _id: new ObjectId(id), "teams.teamId": teamId },
+            { $push: { "teams.$.users": userId } }
         );
 
         if (result.matchedCount === 0) {
@@ -251,7 +251,7 @@ export const deleteUserFromTeam = async (req, res) => {
         const db = client.db(DB_NAME);
 
         const company = await db.collection(COMPANIES_COLLECTION).findOne(
-            { _id: new ObjectId(id), "teams.teamId": new ObjectId(teamId) }
+            { _id: new ObjectId(id), "teams.teamId": teamId }
         );
 
         if (!company) {
@@ -259,8 +259,8 @@ export const deleteUserFromTeam = async (req, res) => {
         }
 
         const result = await db.collection(COMPANIES_COLLECTION).updateOne(
-            { _id: new ObjectId(id), "teams.teamId": new ObjectId(teamId) },
-            { $pull: { "teams.$.users": new ObjectId(userId) } }
+            { _id: new ObjectId(id), "teams.teamId": teamId },
+            { $pull: { "teams.$.users": userId } }
         );
 
         if (result.matchedCount === 0) {

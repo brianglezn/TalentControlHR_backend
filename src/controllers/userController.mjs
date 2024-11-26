@@ -30,13 +30,12 @@ export const getUserById = async (req, res) => {
 };
 
 export const createUser = async (req, res) => {
-    const { username, name, surnames, email, password, role, company } = req.body;
+    const { username, name, surnames, email, password } = req.body;
 
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
 
         const db = client.db(DB_NAME);
-        const companyId = company ? new ObjectId(company) : null;
 
         const newUser = {
             username,
@@ -44,8 +43,7 @@ export const createUser = async (req, res) => {
             surnames,
             email,
             password: hashedPassword,
-            role,
-            company: companyId,
+            role: "employee",
         };
 
         const result = await db.collection(USERS_COLLECTION).insertOne(newUser);

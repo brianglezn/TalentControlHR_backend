@@ -32,7 +32,7 @@ export const registerUser = async (req, res) => {
             surnames,
             email,
             password: hashedPassword,
-            role: 'user',
+            role: 'employee',
             createdAt: new Date(),
             updatedAt: new Date(),
         });
