@@ -119,23 +119,23 @@ export const updateTeamFromCompany = async (req, res) => {
         const db = client.db(DB_NAME);
 
         const result = await db.collection(COMPANIES_COLLECTION).updateOne(
-            { _id: new ObjectId(id), "teams.teamId": new ObjectId(teamId) },
+            { _id: new ObjectId(id), 'teams.teamId': new ObjectId(teamId) },
             {
                 $set: {
-                    "teams.$.name": name || "Unnamed Team",
-                    "teams.$.description": description || "",
-                    "teams.$.color": color || "#000000",
+                    'teams.$.name': name || 'Unnamed Team',
+                    'teams.$.description': description || '',
+                    'teams.$.color': color || '#000000',
                 },
             }
         );
 
         if (result.matchedCount === 0) {
-            return res.status(404).json({ error: "Company or team not found" });
+            return res.status(404).json({ error: 'Company or team not found' });
         }
 
-        res.status(200).json({ message: "Team updated successfully" });
+        res.status(200).json({ message: 'Team updated successfully' });
     } catch (error) {
-        res.status(500).json({ error: "Error updating team", details: error.message });
+        res.status(500).json({ error: 'Error updating team', details: error.message });
     }
 };
 
@@ -166,8 +166,8 @@ export const getCompanyTeamsById = async (req, res) => {
         const db = client.db(DB_NAME);
 
         const company = await db.collection(COMPANIES_COLLECTION).findOne(
-            { _id: new ObjectId(id), "teams.teamId": teamId },
-            { projection: { "teams.$": 1 } }
+            { _id: new ObjectId(id), 'teams.teamId': teamId },
+            { projection: { 'teams.$': 1 } }
         );
 
         if (!company || !company.teams || company.teams.length === 0) {
@@ -176,7 +176,7 @@ export const getCompanyTeamsById = async (req, res) => {
 
         res.status(200).json(company.teams[0]);
     } catch (error) {
-        res.status(500).json({ error: "Error retrieving team from company", details: error.message });
+        res.status(500).json({ error: 'Error retrieving team from company', details: error.message });
     }
 };
 
@@ -187,8 +187,8 @@ export const getUsersFromTeam = async (req, res) => {
         const db = client.db(DB_NAME);
 
         const company = await db.collection(COMPANIES_COLLECTION).findOne(
-            { _id: new ObjectId(id), "teams.teamId": teamId }, 
-            { projection: { "teams.$": 1 } }
+            { _id: new ObjectId(id), 'teams.teamId': teamId }, 
+            { projection: { 'teams.$': 1 } }
         );
 
         if (!company || !company.teams || company.teams.length === 0) {
@@ -199,14 +199,14 @@ export const getUsersFromTeam = async (req, res) => {
         const userIds = team.users || [];
 
         if (userIds.length === 0) {
-            return res.status(404).json({ message: "No users found in the team" });
+            return res.status(404).json({ message: 'No users found in the team' });
         }
 
-        const users = await db.collection("users").find({ _id: { $in: userIds.map(id => new ObjectId(id)) } }).toArray();
+        const users = await db.collection('users').find({ _id: { $in: userIds.map(id => new ObjectId(id)) } }).toArray();
 
         res.status(200).json(users);
     } catch (error) {
-        res.status(500).json({ error: "Error retrieving users from team", details: error.message });
+        res.status(500).json({ error: 'Error retrieving users from team', details: error.message });
     }
 };
 
@@ -217,7 +217,7 @@ export const addUserToTeam = async (req, res) => {
         const db = client.db(DB_NAME);
 
         const company = await db.collection(COMPANIES_COLLECTION).findOne(
-            { _id: new ObjectId(id), "teams.teamId": teamId } 
+            { _id: new ObjectId(id), 'teams.teamId': teamId } 
         );
 
         if (!company) {
@@ -230,17 +230,17 @@ export const addUserToTeam = async (req, res) => {
         }
 
         const result = await db.collection(COMPANIES_COLLECTION).updateOne(
-            { _id: new ObjectId(id), "teams.teamId": teamId },
-            { $push: { "teams.$.users": userId } }
+            { _id: new ObjectId(id), 'teams.teamId': teamId },
+            { $push: { 'teams.$.users': userId } }
         );
 
         if (result.matchedCount === 0) {
             return res.status(404).json({ error: `Team with ID ${teamId} not found in the specified company with ID ${id}` });
         }
 
-        res.status(200).json({ message: "User successfully added to the team" });
+        res.status(200).json({ message: 'User successfully added to the team' });
     } catch (error) {
-        res.status(500).json({ error: "Error adding user to team", details: error.message });
+        res.status(500).json({ error: 'Error adding user to team', details: error.message });
     }
 };
 
@@ -251,7 +251,7 @@ export const deleteUserFromTeam = async (req, res) => {
         const db = client.db(DB_NAME);
 
         const company = await db.collection(COMPANIES_COLLECTION).findOne(
-            { _id: new ObjectId(id), "teams.teamId": teamId }
+            { _id: new ObjectId(id), 'teams.teamId': teamId }
         );
 
         if (!company) {
@@ -259,17 +259,17 @@ export const deleteUserFromTeam = async (req, res) => {
         }
 
         const result = await db.collection(COMPANIES_COLLECTION).updateOne(
-            { _id: new ObjectId(id), "teams.teamId": teamId },
-            { $pull: { "teams.$.users": userId } }
+            { _id: new ObjectId(id), 'teams.teamId': teamId },
+            { $pull: { 'teams.$.users': userId } }
         );
 
         if (result.matchedCount === 0) {
             return res.status(404).json({ error: `User with ID ${userId} not found in the team with ID ${teamId}` });
         }
 
-        res.status(200).json({ message: "User successfully removed from the team" });
+        res.status(200).json({ message: 'User successfully removed from the team' });
     } catch (error) {
-        res.status(500).json({ error: "Error removing user from team", details: error.message });
+        res.status(500).json({ error: 'Error removing user from team', details: error.message });
     }
 };
 
@@ -288,11 +288,11 @@ export const getUsersFromCompany = async (req, res) => {
             return res.status(404).json({ error: `Company with ID ${id} not found or no users exist in this company.` });
         }
 
-        const users = await db.collection("users").find({ _id: { $in: company.users } }).toArray();
+        const users = await db.collection('users').find({ _id: { $in: company.users } }).toArray();
 
         res.status(200).json(users);
     } catch (error) {
-        res.status(500).json({ error: "Error retrieving users from company", details: error.message });
+        res.status(500).json({ error: 'Error retrieving users from company', details: error.message });
     }
 };
 
@@ -302,7 +302,7 @@ export const addUserToCompany = async (req, res) => {
     try {
         const db = client.db(DB_NAME);
 
-        const user = await db.collection("users").findOne({ _id: new ObjectId(userId) });
+        const user = await db.collection('users').findOne({ _id: new ObjectId(userId) });
         if (!user) {
             return res.status(404).json({ error: `User with ID ${userId} does not exist` });
         }
@@ -321,9 +321,9 @@ export const addUserToCompany = async (req, res) => {
             { $push: { users: new ObjectId(userId) } }
         );
 
-        res.status(200).json({ message: "User successfully added to the company" });
+        res.status(200).json({ message: 'User successfully added to the company' });
     } catch (error) {
-        res.status(500).json({ error: "Error adding user to company", details: error.message });
+        res.status(500).json({ error: 'Error adding user to company', details: error.message });
     }
 };
 
@@ -341,8 +341,8 @@ export const deleteUserFromCompany = async (req, res) => {
         }
 
         await db.collection(COMPANIES_COLLECTION).updateOne(
-            { _id: new ObjectId(id), "teams.users": new ObjectId(userId) },
-            { $pull: { "teams.$.users": new ObjectId(userId) } }
+            { _id: new ObjectId(id), 'teams.users': new ObjectId(userId) },
+            { $pull: { 'teams.$.users': new ObjectId(userId) } }
         );
 
         const result = await db.collection(COMPANIES_COLLECTION).updateOne(
@@ -350,9 +350,9 @@ export const deleteUserFromCompany = async (req, res) => {
             { $pull: { users: new ObjectId(userId) } }
         );
 
-        res.status(200).json({ message: "User successfully removed from the company" });
+        res.status(200).json({ message: 'User successfully removed from the company' });
     } catch (error) {
-        res.status(500).json({ error: "Error removing user from company", details: error.message });
+        res.status(500).json({ error: 'Error removing user from company', details: error.message });
     }
 };
 

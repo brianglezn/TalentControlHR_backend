@@ -65,7 +65,7 @@ export const loginUser = async (req, res) => {
             return res.status(401).json({ message: 'Incorrect password' });
         }
 
-        const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET, {
+        const token = jwt.sign({ userId: user._id, role: user.role, company: user.company }, process.env.JWT_SECRET, {
             expiresIn: '1h',
         });
 
@@ -75,7 +75,7 @@ export const loginUser = async (req, res) => {
             sameSite: 'none',
         });
 
-        res.status(200).json({ message: 'Login successful' });
+        res.status(200).json({ message: 'Login successful', user });
     } catch (error) {
         console.error('Error during login:', error.message);
         res.status(500).json({ message: 'Error logging in', error: error.message });

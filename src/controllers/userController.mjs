@@ -39,7 +39,15 @@ export const getCurrentUser = async (req, res) => {
             return res.status(404).json({ error: 'User not found' });
         }
 
-        res.status(200).json(user);
+        res.status(200).json({
+            userId: user._id.toString(),
+            username: user.username,
+            name: user.name,
+            surnames: user.surnames,
+            email: user.email,
+            role: user.role,
+            company: user.company,
+        });
     } catch (error) {
         res.status(500).json({ error: 'Error retrieving current user', details: error.message });
     }
@@ -59,7 +67,8 @@ export const createUser = async (req, res) => {
             surnames,
             email,
             password: hashedPassword,
-            role: "employee",
+            role: 'employee',
+            company: null, 
         };
 
         const result = await db.collection(USERS_COLLECTION).insertOne(newUser);
