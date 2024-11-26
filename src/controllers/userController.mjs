@@ -29,6 +29,22 @@ export const getUserById = async (req, res) => {
     }
 };
 
+export const getCurrentUser = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const db = client.db(DB_NAME);
+
+        const user = await db.collection(USERS_COLLECTION).findOne({ _id: new ObjectId(userId) });
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        res.status(200).json(user);
+    } catch (error) {
+        res.status(500).json({ error: 'Error retrieving current user', details: error.message });
+    }
+};
+
 export const createUser = async (req, res) => {
     const { username, name, surnames, email, password } = req.body;
 

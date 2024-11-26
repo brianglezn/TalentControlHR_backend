@@ -10,6 +10,7 @@ app.use(cookieParser());
 const allowedOrigins = [
     'http://localhost:5173',
     'https://talentcontrolhr-frontend.onrender.com',
+    'https://talentcontrolhr.brian-novoa.com',
 ];
 
 app.use((req, res, next) => {
