@@ -12,11 +12,11 @@ import { authenticateToken } from '../middlewares/authMiddleware.mjs';
 
 const router = express.Router();
 
-router.get('/:id', getUserById);
-router.post('/', createUser);
-router.put('/:id', updateUserById);
-router.delete('/:id', deleteUserById);
-router.patch('/:id/reset-password', resetUserPassword);
+router.get('/:id', authenticateToken, getUserById);
+router.post('/', authenticateToken, createUser);
+router.put('/:id', authenticateToken, updateUserById);
+router.delete('/:id', authenticateToken, deleteUserById);
+router.patch('/:id/reset-password', authenticateToken, resetUserPassword);
 router.get('/', authenticateToken, getAllUsers);
 router.get('/me', authenticateToken, getCurrentUser);
 

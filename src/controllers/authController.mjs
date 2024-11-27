@@ -65,43 +65,15 @@ export const loginUser = async (req, res) => {
             return res.status(401).json({ message: 'Incorrect password' });
         }
 
-        const token = jwt.sign({ userId: user._id, role: user.role, company: user.company }, process.env.JWT_SECRET, {
-            expiresIn: '1h',
-        });
+        const token = jwt.sign(
+            { userId: user._id.toString(), role: user.role, company: user.company },
+            process.env.JWT_SECRET,
+            { expiresIn: '1h' }
+        );
 
-        res.cookie('authToken', token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'none',
-        });
-
-        res.status(200).json({ message: 'Login successful', user });
+        // Devuelve el token y la información del usuario al cliente
+        res.status(200).json({ message: 'Login successful', token, user });
     } catch (error) {
-        console.error('Error during login:', error.message);
         res.status(500).json({ message: 'Error logging in', error: error.message });
-    }
-};
-
-export const verifySession = (req, res) => {
-    try {
-        const token = req.cookies.authToken;
-        if (!token) {
-            return res.status(401).json({ message: 'No token provided' });
-        }
-
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        return res.status(200).json({ isAuthenticated: true, user: decoded });
-    } catch (error) {
-        return res.status(401).json({ isAuthenticated: false, message: 'Invalid or expired token' });
-    }
-};
-
-export const logoutUser = (req, res) => {
-    try {
-        res.clearCookie('authToken');
-        res.status(200).json({ message: 'Session closed successfully' });
-    } catch (error) {
-        console.error('Error during logout:', error.message);
-        res.status(500).json({ message: 'Error logging out', error: error.message });
     }
 };

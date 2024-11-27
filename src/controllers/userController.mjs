@@ -1,6 +1,5 @@
 import bcrypt from 'bcrypt';
 import { ObjectId } from 'mongodb';
-
 import { client, DB_NAME } from '../config/database.mjs';
 
 const USERS_COLLECTION = 'users';
@@ -31,17 +30,20 @@ export const getUserById = async (req, res) => {
 
 export const getCurrentUser = async (req, res) => {
     try {
-        console.log('Entrando a la ruta /me'); // Verifica si la ruta se ejecuta
-        console.log('Usuario decodificado en el middleware:', req.user); // Asegúrate de que `req.user` tiene información
-        const userId = req.user.id;
-        console.log('ID del usuario extraído del token:', userId); // Verifica que el ID es válido
+        console.log('Entrando a la ruta /me');
+        console.log('Usuario decodificado en el middleware:', req.user);
+
+        const userId = req.user.userId;
+
+        if (!ObjectId.isValid(userId)) {
+            console.log('ID de usuario no válido:', userId);
+            return res.status(400).json({ error: 'Invalid user ID format' });
+        }
 
         const db = client.db(DB_NAME);
         const user = await db.collection(USERS_COLLECTION).findOne({ _id: new ObjectId(userId) });
-        console.log('Usuario encontrado en la base de datos:', user); // Asegúrate de que el usuario existe en la BD
 
         if (!user) {
-            console.log('Usuario no encontrado en la base de datos');
             return res.status(404).json({ error: 'User not found' });
         }
 
@@ -55,7 +57,6 @@ export const getCurrentUser = async (req, res) => {
             company: user.company,
         });
     } catch (error) {
-        console.log('Error en /me:', error.message); // Detecta cualquier otro error
         res.status(500).json({ error: 'Error retrieving current user', details: error.message });
     }
 };
