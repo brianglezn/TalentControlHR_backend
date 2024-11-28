@@ -31,14 +31,13 @@ export const createCompany = async (req, res) => {
     const { name, description, industry, image } = req.body;
     try {
         const db = client.db(DB_NAME);
-        const newCompany = { 
-            name, 
-            description, 
-            industry, 
-            image, 
-            teams: [], 
-            users: [], 
-            admin: [] 
+        const newCompany = {
+            name,
+            description,
+            industry,
+            image,
+            teams: [],
+            users: []
         };
         const result = await db.collection(COMPANIES_COLLECTION).insertOne(newCompany);
 
@@ -315,28 +314,24 @@ export const getUsersFromCompany = async (req, res) => {
 };
 
 export const addUserToCompany = async (req, res) => {
-    const { id: companyId, userId } = req.params;
+    const { id: companyId, userId, roles } = req.body;
 
     try {
         const db = client.db(DB_NAME);
-
-        const user = await db.collection('users').findOne({ _id: new ObjectId(userId) });
-        if (!user) {
-            return res.status(404).json({ error: `User with ID ${userId} does not exist` });
-        }
 
         const company = await db.collection(COMPANIES_COLLECTION).findOne({ _id: new ObjectId(companyId) });
         if (!company) {
             return res.status(404).json({ error: `Company with ID ${companyId} not found` });
         }
 
-        if (company.users.some((u) => u.toString() === userId)) {
+        const userAlreadyExists = company.users.some((u) => u.userId === userId);
+        if (userAlreadyExists) {
             return res.status(400).json({ error: `User with ID ${userId} is already part of the company` });
         }
 
         const result = await db.collection(COMPANIES_COLLECTION).updateOne(
             { _id: new ObjectId(companyId) },
-            { $push: { users: new ObjectId(userId) } }
+            { $push: { users: { userId, roles } } }
         );
 
         if (result.modifiedCount === 0) {
@@ -350,73 +345,46 @@ export const addUserToCompany = async (req, res) => {
     }
 };
 
+export const updateUserRolesInCompany = async (req, res) => {
+    const { id: companyId, userId } = req.params;
+    const { roles } = req.body;
+
+    try {
+        const db = client.db(DB_NAME);
+        const result = await db.collection(COMPANIES_COLLECTION).updateOne(
+            { _id: new ObjectId(companyId), 'users.userId': userId },
+            { $set: { 'users.$.roles': roles } }
+        );
+
+        if (result.matchedCount === 0) {
+            return res.status(404).json({ error: 'User not found in the company' });
+        }
+
+        res.status(200).json({ message: 'User roles updated successfully' });
+    } catch (error) {
+        console.error('Error updating user roles in company:', error);
+        res.status(500).json({ error: 'Failed to update user roles' });
+    }
+};
+
 export const deleteUserFromCompany = async (req, res) => {
-    const { id, userId } = req.params;
+    const { id: companyId, userId } = req.params;
 
     try {
         const db = client.db(DB_NAME);
 
-        const company = await db.collection(COMPANIES_COLLECTION).findOne(
-            { _id: new ObjectId(id), users: { $in: [new ObjectId(userId)] } }
-        );
-        if (!company) {
-            return res.status(404).json({ error: `User with ID ${userId} not found in the company with ID ${id}` });
-        }
-
-        await db.collection(COMPANIES_COLLECTION).updateOne(
-            { _id: new ObjectId(id), 'teams.users': new ObjectId(userId) },
-            { $pull: { 'teams.$.users': new ObjectId(userId) } }
-        );
-
         const result = await db.collection(COMPANIES_COLLECTION).updateOne(
-            { _id: new ObjectId(id) },
-            { $pull: { users: new ObjectId(userId) } }
+            { _id: new ObjectId(companyId) },
+            { $pull: { users: { userId } } }
         );
+
+        if (result.matchedCount === 0) {
+            return res.status(404).json({ error: `User with ID ${userId} not found in the company` });
+        }
 
         res.status(200).json({ message: 'User successfully removed from the company' });
     } catch (error) {
-        res.status(500).json({ error: 'Error removing user from company', details: error.message });
-    }
-};
-
-export const addAdminToCompany = async (req, res) => {
-    const { id: companyId, userId } = req.params;
-
-    try {
-        const db = client.db(DB_NAME);
-        const result = await db.collection(COMPANIES_COLLECTION).updateOne(
-            { _id: new ObjectId(companyId) },
-            { $addToSet: { admin: userId } }
-        );
-
-        if (result.matchedCount === 0) {
-            return res.status(404).json({ error: 'Company not found' });
-        }
-
-        res.status(200).json({ message: 'User added as admin successfully' });
-    } catch (error) {
-        console.error('Error adding admin to company:', error);
-        res.status(500).json({ error: 'Failed to add admin to company' });
-    }
-};
-
-export const removeAdminFromCompany = async (req, res) => {
-    const { id: companyId, userId } = req.params;
-
-    try {
-        const db = client.db(DB_NAME);
-        const result = await db.collection(COMPANIES_COLLECTION).updateOne(
-            { _id: new ObjectId(companyId) },
-            { $pull: { admin: userId } }
-        );
-
-        if (result.matchedCount === 0) {
-            return res.status(404).json({ error: 'Company not found or user is not an admin' });
-        }
-
-        res.status(200).json({ message: 'User removed from admin successfully' });
-    } catch (error) {
-        console.error('Error removing admin from company:', error);
-        res.status(500).json({ error: 'Failed to remove admin from company' });
+        console.error('Error removing user from company:', error);
+        res.status(500).json({ error: 'Failed to remove user from company' });
     }
 };

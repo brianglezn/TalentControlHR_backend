@@ -16,8 +16,7 @@ import {
     deleteUserFromTeam,
     getUsersFromCompany,
     addUserToCompany,
-    addAdminToCompany,
-    removeAdminFromCompany,
+    updateUserRolesInCompany,
 } from '../controllers/companiesController.mjs';
 import { authenticateToken } from '../middlewares/authMiddleware.mjs';
 
@@ -32,9 +31,7 @@ router.delete('/:id', authenticateToken, deleteCompanyById);
 router.get('/:id/users', authenticateToken, getUsersFromCompany);
 router.patch('/:id/users/:userId', authenticateToken, addUserToCompany);
 router.delete('/:id/users/:userId', authenticateToken, deleteUserFromCompany);
-
-router.patch('/:id/admin/:userId', authenticateToken, addAdminToCompany);
-router.delete('/:id/admin/:userId', authenticateToken, removeAdminFromCompany);
+router.put('/:id/users/:userId/roles', authenticateToken, updateUserRolesInCompany);
 
 router.get('/:id/teams', authenticateToken, getCompanyTeams);
 router.get('/:id/teams/:teamId', authenticateToken, getCompanyTeamsById);
