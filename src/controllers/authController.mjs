@@ -32,7 +32,6 @@ export const registerUser = async (req, res) => {
             surnames,
             email,
             password: hashedPassword,
-            role: 'employee',
             createdAt: new Date(),
             updatedAt: new Date(),
         });
@@ -65,7 +64,7 @@ export const loginUser = async (req, res) => {
             return res.status(401).json({ message: 'Incorrect password' });
         }
 
-        const token = jwt.sign({ userId: user._id, role: user.role, company: user.company }, process.env.JWT_SECRET, {
+        const token = jwt.sign({ userId: user._id, company: user.company }, process.env.JWT_SECRET, {
             expiresIn: '1h',
         });
 

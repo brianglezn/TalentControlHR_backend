@@ -31,7 +31,15 @@ export const createCompany = async (req, res) => {
     const { name, description, industry, image } = req.body;
     try {
         const db = client.db(DB_NAME);
-        const newCompany = { name, description, industry, image, teams: [], users: [] };
+        const newCompany = { 
+            name, 
+            description, 
+            industry, 
+            image, 
+            teams: [], 
+            users: [], 
+            admin: [] 
+        };
         const result = await db.collection(COMPANIES_COLLECTION).insertOne(newCompany);
 
         if (!result.insertedId) {
@@ -371,3 +379,44 @@ export const deleteUserFromCompany = async (req, res) => {
     }
 };
 
+export const addAdminToCompany = async (req, res) => {
+    const { id: companyId, userId } = req.params;
+
+    try {
+        const db = client.db(DB_NAME);
+        const result = await db.collection(COMPANIES_COLLECTION).updateOne(
+            { _id: new ObjectId(companyId) },
+            { $addToSet: { admin: userId } }
+        );
+
+        if (result.matchedCount === 0) {
+            return res.status(404).json({ error: 'Company not found' });
+        }
+
+        res.status(200).json({ message: 'User added as admin successfully' });
+    } catch (error) {
+        console.error('Error adding admin to company:', error);
+        res.status(500).json({ error: 'Failed to add admin to company' });
+    }
+};
+
+export const removeAdminFromCompany = async (req, res) => {
+    const { id: companyId, userId } = req.params;
+
+    try {
+        const db = client.db(DB_NAME);
+        const result = await db.collection(COMPANIES_COLLECTION).updateOne(
+            { _id: new ObjectId(companyId) },
+            { $pull: { admin: userId } }
+        );
+
+        if (result.matchedCount === 0) {
+            return res.status(404).json({ error: 'Company not found or user is not an admin' });
+        }
+
+        res.status(200).json({ message: 'User removed from admin successfully' });
+    } catch (error) {
+        console.error('Error removing admin from company:', error);
+        res.status(500).json({ error: 'Failed to remove admin from company' });
+    }
+};

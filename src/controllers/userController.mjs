@@ -52,8 +52,6 @@ export const createUser = async (req, res) => {
             surnames,
             email,
             password: hashedPassword,
-            role: 'employee',
-            company: null,
         };
 
         const result = await db.collection(USERS_COLLECTION).insertOne(newUser);
@@ -70,9 +68,6 @@ export const updateUserById = async (req, res) => {
     try {
         const db = client.db(DB_NAME);
 
-        if (updateData.company) {
-            updateData.company = new ObjectId(updateData.company);
-        }
         if (updateData.team) {
             updateData.team = new ObjectId(updateData.team);
         }
