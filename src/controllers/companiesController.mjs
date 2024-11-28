@@ -314,7 +314,8 @@ export const getUsersFromCompany = async (req, res) => {
 };
 
 export const addUserToCompany = async (req, res) => {
-    const { id: companyId, userId, roles } = req.body;
+    const { id: companyId, userId } = req.params; 
+    const { roles } = req.body; 
 
     try {
         const db = client.db(DB_NAME);
@@ -331,11 +332,11 @@ export const addUserToCompany = async (req, res) => {
 
         const result = await db.collection(COMPANIES_COLLECTION).updateOne(
             { _id: new ObjectId(companyId) },
-            { $push: { users: { userId, roles } } }
+            { $push: { users: { userId, roles: roles || ['employee'] } } }
         );
 
         if (result.modifiedCount === 0) {
-            throw new Error('Failed to update company with user');
+            throw new Error('Failed to add user to company');
         }
 
         res.status(200).json({ message: 'User added to company successfully' });
