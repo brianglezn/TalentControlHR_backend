@@ -33,23 +33,25 @@ export const getCurrentUser = async (req, res) => {
     try {
         console.log('Request user:', req.user);
         const userId = req.user.id;
+        console.log('User ID:', userId);
 
         if (!ObjectId.isValid(userId)) {
             console.error('Invalid ObjectId format:', userId);
             return res.status(400).json({ error: 'Invalid user ID format' });
         }
 
+        console.log('Connecting to database...');
         const db = client.db(DB_NAME);
-        console.log(`Connected to DB: ${DB_NAME}, checking userId: ${userId}`);
 
+        console.log(`Querying database for userId: ${userId}`);
         const user = await db.collection(USERS_COLLECTION).findOne({ _id: new ObjectId(userId) });
-        console.log('MongoDB query result:', user);
 
         if (!user) {
             console.error('User not found in the database:', userId);
             return res.status(404).json({ error: 'User not found' });
         }
 
+        console.log('User found:', user);
         res.status(200).json({
             userId: user._id.toString(),
             username: user.username,
