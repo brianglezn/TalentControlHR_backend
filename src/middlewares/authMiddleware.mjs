@@ -9,8 +9,8 @@ export const authenticateToken = (req, res, next) => {
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        console.log('Decoded token:', decoded);
         req.user = decoded;
-        console.log('Token successfully verified:', req.user);
         next();
     } catch (error) {
         console.log('Token verification error:', error.message);

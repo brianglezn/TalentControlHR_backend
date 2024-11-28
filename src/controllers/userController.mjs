@@ -31,10 +31,16 @@ export const getUserById = async (req, res) => {
 
 export const getCurrentUser = async (req, res) => {
     try {
+        console.log('req.user:', req.user);
         const userId = req.user.id;
-        const db = client.db(DB_NAME);
 
+        if (!ObjectId.isValid(userId)) {
+            return res.status(400).json({ error: 'Invalid user ID format' });
+        }
+
+        const db = client.db(DB_NAME);
         const user = await db.collection(USERS_COLLECTION).findOne({ _id: new ObjectId(userId) });
+
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
@@ -49,6 +55,7 @@ export const getCurrentUser = async (req, res) => {
             company: user.company,
         });
     } catch (error) {
+        console.error('Error retrieving current user:', error.message);
         res.status(500).json({ error: 'Error retrieving current user', details: error.message });
     }
 };
