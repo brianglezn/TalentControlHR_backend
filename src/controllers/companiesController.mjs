@@ -297,7 +297,7 @@ export const getUsersFromCompany = async (req, res) => {
 };
 
 export const addUserToCompany = async (req, res) => {
-    const { id, userId } = req.params;
+    const { id: companyId, userId } = req.params;
 
     try {
         const db = client.db(DB_NAME);
@@ -307,23 +307,28 @@ export const addUserToCompany = async (req, res) => {
             return res.status(404).json({ error: `User with ID ${userId} does not exist` });
         }
 
-        const company = await db.collection(COMPANIES_COLLECTION).findOne({ _id: new ObjectId(id) });
+        const company = await db.collection(COMPANIES_COLLECTION).findOne({ _id: new ObjectId(companyId) });
         if (!company) {
-            return res.status(404).json({ error: `Company with ID ${id} not found` });
+            return res.status(404).json({ error: `Company with ID ${companyId} not found` });
         }
 
-        if (company.users?.some(user => user.toString() === userId)) {
-            return res.status(400).json({ error: `User with ID ${userId} already belongs to the company` });
+        if (company.users.some((u) => u.toString() === userId)) {
+            return res.status(400).json({ error: `User with ID ${userId} is already part of the company` });
         }
 
         const result = await db.collection(COMPANIES_COLLECTION).updateOne(
-            { _id: new ObjectId(id) },
+            { _id: new ObjectId(companyId) },
             { $push: { users: new ObjectId(userId) } }
         );
 
-        res.status(200).json({ message: 'User successfully added to the company' });
+        if (result.modifiedCount === 0) {
+            throw new Error('Failed to update company with user');
+        }
+
+        res.status(200).json({ message: 'User added to company successfully' });
     } catch (error) {
-        res.status(500).json({ error: 'Error adding user to company', details: error.message });
+        console.error('Error adding user to company:', error);
+        res.status(500).json({ error: 'Failed to add user to company' });
     }
 };
 
