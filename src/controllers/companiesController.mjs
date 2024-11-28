@@ -31,7 +31,7 @@ export const createCompany = async (req, res) => {
     const { name, description, industry, image } = req.body;
     try {
         const db = client.db(DB_NAME);
-        const newCompany = { name, description, industry, image, teams: [] };
+        const newCompany = { name, description, industry, image, teams: [], users: [] };
         const result = await db.collection(COMPANIES_COLLECTION).insertOne(newCompany);
         res.status(201).json({ message: 'Company created successfully', companyId: result.insertedId });
     } catch (error) {
