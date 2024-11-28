@@ -31,26 +31,34 @@ export const getUserById = async (req, res) => {
 
 export const getCurrentUser = async (req, res) => {
     try {
-        console.log('Request user:', req.user);
+        // Registro inicial del usuario desde el token
+        console.log('Request user from token:', req.user);
         const userId = req.user.id;
-        console.log('User ID:', userId);
 
+        // Validar si el ID es un ObjectId válido
         if (!ObjectId.isValid(userId)) {
             console.error('Invalid ObjectId format:', userId);
             return res.status(400).json({ error: 'Invalid user ID format' });
         }
 
+        // Conexión a la base de datos
         console.log('Connecting to database...');
         const db = client.db(DB_NAME);
 
+        // Intentar realizar la consulta
         console.log(`Querying database for userId: ${userId}`);
         const user = await db.collection(USERS_COLLECTION).findOne({ _id: new ObjectId(userId) });
 
+        // Registro del resultado de la consulta
+        console.log('MongoDB query result:', user);
+
+        // Si no se encuentra el usuario
         if (!user) {
             console.error('User not found in the database:', userId);
             return res.status(404).json({ error: 'User not found' });
         }
 
+        // Si se encuentra el usuario, devolver los datos
         console.log('User found:', user);
         res.status(200).json({
             userId: user._id.toString(),
@@ -62,7 +70,8 @@ export const getCurrentUser = async (req, res) => {
             company: user.company,
         });
     } catch (error) {
-        console.error('Error in getCurrentUser:', error.stack);
+        // Registro detallado del error
+        console.error('Unexpected error in getCurrentUser:', error);
         res.status(500).json({ error: 'Error retrieving current user', details: error.message });
     }
 };
