@@ -16,63 +16,22 @@ export const getAllUsers = async (req, res) => {
 };
 
 export const getUserById = async (req, res) => {
-    const { id } = req.params;
+    const userId = req.params.id === 'me' ? req.user.id : req.params.id;
     try {
-        const db = client.db(DB_NAME);
-        const user = await db.collection(USERS_COLLECTION).findOne({ _id: new ObjectId(id) });
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-        res.status(200).json(user);
-    } catch (error) {
-        res.status(500).json({ error: 'Error retrieving user', details: error.message });
-    }
-};
-
-export const getCurrentUser = async (req, res) => {
-    try {
-        // Registro inicial del usuario desde el token
-        console.log('Request user from token:', req.user);
-        const userId = req.user.id;
-
-        // Validar si el ID es un ObjectId válido
         if (!ObjectId.isValid(userId)) {
-            console.error('Invalid ObjectId format:', userId);
             return res.status(400).json({ error: 'Invalid user ID format' });
         }
 
-        // Conexión a la base de datos
-        console.log('Connecting to database...');
         const db = client.db(DB_NAME);
-
-        // Intentar realizar la consulta
-        console.log(`Querying database for userId: ${userId}`);
         const user = await db.collection(USERS_COLLECTION).findOne({ _id: new ObjectId(userId) });
 
-        // Registro del resultado de la consulta
-        console.log('MongoDB query result:', user);
-
-        // Si no se encuentra el usuario
         if (!user) {
-            console.error('User not found in the database:', userId);
             return res.status(404).json({ error: 'User not found' });
         }
 
-        // Si se encuentra el usuario, devolver los datos
-        console.log('User found:', user);
-        res.status(200).json({
-            userId: user._id.toString(),
-            username: user.username,
-            name: user.name,
-            surnames: user.surnames,
-            email: user.email,
-            role: user.role,
-            company: user.company,
-        });
+        res.status(200).json(user);
     } catch (error) {
-        // Registro detallado del error
-        console.error('Unexpected error in getCurrentUser:', error);
-        res.status(500).json({ error: 'Error retrieving current user', details: error.message });
+        res.status(500).json({ error: 'Error retrieving user', details: error.message });
     }
 };
 
