@@ -31,7 +31,7 @@ export const getUserById = async (req, res) => {
 
 export const getCurrentUser = async (req, res) => {
     try {
-        console.log('req.user:', req.user); // Registrar `req.user`
+        console.log('Request user:', req.user);
         const userId = req.user.id;
 
         if (!ObjectId.isValid(userId)) {
@@ -40,13 +40,13 @@ export const getCurrentUser = async (req, res) => {
         }
 
         const db = client.db(DB_NAME);
-        console.log('Connecting to DB:', DB_NAME);
+        console.log(`Connected to DB: ${DB_NAME}, checking userId: ${userId}`);
 
         const user = await db.collection(USERS_COLLECTION).findOne({ _id: new ObjectId(userId) });
         console.log('MongoDB query result:', user);
 
         if (!user) {
-            console.error('User not found in DB:', userId);
+            console.error('User not found in the database:', userId);
             return res.status(404).json({ error: 'User not found' });
         }
 
@@ -60,7 +60,7 @@ export const getCurrentUser = async (req, res) => {
             company: user.company,
         });
     } catch (error) {
-        console.error('Error in getCurrentUser:', error.message);
+        console.error('Error in getCurrentUser:', error.stack);
         res.status(500).json({ error: 'Error retrieving current user', details: error.message });
     }
 };
@@ -80,7 +80,7 @@ export const createUser = async (req, res) => {
             email,
             password: hashedPassword,
             role: 'employee',
-            company: null, 
+            company: null,
         };
 
         const result = await db.collection(USERS_COLLECTION).insertOne(newUser);
