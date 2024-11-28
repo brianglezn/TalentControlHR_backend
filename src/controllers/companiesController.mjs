@@ -33,8 +33,18 @@ export const createCompany = async (req, res) => {
         const db = client.db(DB_NAME);
         const newCompany = { name, description, industry, image, teams: [], users: [] };
         const result = await db.collection(COMPANIES_COLLECTION).insertOne(newCompany);
-        res.status(201).json({ message: 'Company created successfully', companyId: result.insertedId });
+
+        if (!result.insertedId) {
+            throw new Error('Company creation failed');
+        }
+
+        res.status(201).json({
+            message: 'Company created successfully',
+            _id: result.insertedId,
+            ...newCompany,
+        });
     } catch (error) {
+        console.error('Error creating company:', error);
         res.status(500).json({ error: 'Error creating company', details: error.message });
     }
 };
@@ -187,7 +197,7 @@ export const getUsersFromTeam = async (req, res) => {
         const db = client.db(DB_NAME);
 
         const company = await db.collection(COMPANIES_COLLECTION).findOne(
-            { _id: new ObjectId(id), 'teams.teamId': teamId }, 
+            { _id: new ObjectId(id), 'teams.teamId': teamId },
             { projection: { 'teams.$': 1 } }
         );
 
@@ -217,7 +227,7 @@ export const addUserToTeam = async (req, res) => {
         const db = client.db(DB_NAME);
 
         const company = await db.collection(COMPANIES_COLLECTION).findOne(
-            { _id: new ObjectId(id), 'teams.teamId': teamId } 
+            { _id: new ObjectId(id), 'teams.teamId': teamId }
         );
 
         if (!company) {
