@@ -16,7 +16,7 @@ export const getAllUsers = async (req, res) => {
 };
 
 export const getUserById = async (req, res) => {
-    const userId = req.params.id === 'me' ? req.user.id : req.params.id;
+    const userId = req.params.id === 'me' ? req.user.userId : req.params.id;
     try {
         if (!ObjectId.isValid(userId)) {
             return res.status(400).json({ error: 'Invalid user ID format' });
