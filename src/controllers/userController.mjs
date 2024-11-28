@@ -31,17 +31,22 @@ export const getUserById = async (req, res) => {
 
 export const getCurrentUser = async (req, res) => {
     try {
-        console.log('req.user:', req.user);
+        console.log('req.user:', req.user); // Registrar `req.user`
         const userId = req.user.id;
 
         if (!ObjectId.isValid(userId)) {
+            console.error('Invalid ObjectId format:', userId);
             return res.status(400).json({ error: 'Invalid user ID format' });
         }
 
         const db = client.db(DB_NAME);
+        console.log('Connecting to DB:', DB_NAME);
+
         const user = await db.collection(USERS_COLLECTION).findOne({ _id: new ObjectId(userId) });
+        console.log('MongoDB query result:', user);
 
         if (!user) {
+            console.error('User not found in DB:', userId);
             return res.status(404).json({ error: 'User not found' });
         }
 
@@ -55,7 +60,7 @@ export const getCurrentUser = async (req, res) => {
             company: user.company,
         });
     } catch (error) {
-        console.error('Error retrieving current user:', error.message);
+        console.error('Error in getCurrentUser:', error.message);
         res.status(500).json({ error: 'Error retrieving current user', details: error.message });
     }
 };
