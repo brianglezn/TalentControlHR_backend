@@ -9,17 +9,18 @@ export const registerUser = async (req, res) => {
         const { username, name, surnames, email, password } = req.body;
 
         if (!username || !name || !surnames || !email || !password) {
-            return res.status(400).json({ message: 'All fields are required' });
+            return res.json({ error: true, message: 'All fields are required.' });
         }
 
         const existingUser = await usersCollection.findOne({ $or: [{ username }, { email }] });
         if (existingUser) {
-            return res.status(400).json({ message: 'The username or email already exists' });
+            return res.json({ error: true, message: 'The username or email already exists.' });
         }
 
         const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&#+-])[A-Za-z\d@$!%*?&#+-]{8,}$/;
         if (!passwordRegex.test(password)) {
-            return res.status(400).json({
+            return res.json({
+                error: true,
                 message: 'The password must have at least 8 characters, one uppercase, one lowercase, one number, and one special character.',
             });
         }
@@ -36,10 +37,10 @@ export const registerUser = async (req, res) => {
             updatedAt: new Date(),
         });
 
-        res.status(201).json({ message: 'User registered successfully', userId: result.insertedId });
+        res.json({ error: false, message: 'User registered successfully.', userId: result.insertedId });
     } catch (error) {
-        console.error('Error when registering the user:', error.message);
-        res.status(500).json({ message: 'Error when registering the user', error: error.message });
+        console.error('Error registering user:', error.message);
+        res.json({ error: true, message: 'An error occurred during registration.' });
     }
 };
 
@@ -48,7 +49,7 @@ export const loginUser = async (req, res) => {
         const { username, email, password } = req.body;
 
         if (!password || (!username && !email)) {
-            return res.status(400).json({ message: 'Username/email and password are required' });
+            return res.json({ error: true, message: 'Username/email and password are required.' });
         }
 
         const user = await usersCollection.findOne({
@@ -56,15 +57,15 @@ export const loginUser = async (req, res) => {
         });
 
         if (!user) {
-            return res.status(404).json({ message: 'User not found' });
+            return res.json({ error: true, message: 'User not found.' });
         }
 
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
-            return res.status(401).json({ message: 'Incorrect password' });
+            return res.json({ error: true, message: 'Incorrect password.' });
         }
 
-        const token = jwt.sign({ userId: user._id, company: user.company }, process.env.JWT_SECRET, {
+        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
             expiresIn: '1h',
         });
 
@@ -74,10 +75,10 @@ export const loginUser = async (req, res) => {
             sameSite: 'none',
         });
 
-        res.status(200).json({ message: 'Login successful', user });
+        res.json({ error: false, message: 'Login successful.', user });
     } catch (error) {
         console.error('Error during login:', error.message);
-        res.status(500).json({ message: 'Error logging in', error: error.message });
+        res.json({ error: true, message: 'An error occurred during login.' });
     }
 };
 
@@ -85,22 +86,22 @@ export const verifySession = (req, res) => {
     try {
         const token = req.cookies.authToken;
         if (!token) {
-            return res.status(401).json({ message: 'No token provided' });
+            return res.json({ error: true, message: 'No token provided.', isAuthenticated: false });
         }
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        return res.status(200).json({ isAuthenticated: true, user: decoded });
+        return res.json({ error: false, message: 'Session verified.', isAuthenticated: true, user: decoded });
     } catch (error) {
-        return res.status(401).json({ isAuthenticated: false, message: 'Invalid or expired token' });
+        return res.json({ error: true, message: 'Invalid or expired token.', isAuthenticated: false });
     }
 };
 
 export const logoutUser = (req, res) => {
     try {
         res.clearCookie('authToken');
-        res.status(200).json({ message: 'Session closed successfully' });
+        res.json({ error: false, message: 'Session closed successfully.' });
     } catch (error) {
         console.error('Error during logout:', error.message);
-        res.status(500).json({ message: 'Error logging out', error: error.message });
+        res.json({ error: true, message: 'An error occurred during logout.' });
     }
 };

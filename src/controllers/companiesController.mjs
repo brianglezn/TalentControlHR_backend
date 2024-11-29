@@ -35,7 +35,10 @@ export const createCompany = async (req, res) => {
 
         const existingCompany = await db.collection(COMPANIES_COLLECTION).findOne({ name: name.trim() });
         if (existingCompany) {
-            return res.status(400).json({ error: 'A company with this name already exists.' });
+            return res.json({ 
+                error: true, 
+                message: 'A company with this name already exists. Please choose a different name.' 
+            });
         }
 
         const newCompany = {
@@ -50,17 +53,23 @@ export const createCompany = async (req, res) => {
         const result = await db.collection(COMPANIES_COLLECTION).insertOne(newCompany);
 
         if (!result.insertedId) {
-            throw new Error('Company creation failed');
+            throw new Error('Unexpected error occurred while creating the company.');
         }
 
-        res.status(201).json({
-            message: 'Company created successfully',
-            _id: result.insertedId,
-            ...newCompany,
+        res.json({
+            error: false,
+            message: 'Company created successfully.',
+            company: {
+                _id: result.insertedId,
+                ...newCompany,
+            },
         });
     } catch (error) {
-        console.error('Error creating company:', error);
-        res.status(500).json({ error: 'Error creating company', details: error.message });
+        console.error('Error creating company:', error.message);
+        res.json({ 
+            error: true, 
+            message: 'An error occurred while creating the company. Please try again.' 
+        });
     }
 };
 
@@ -330,12 +339,18 @@ export const addUserToCompany = async (req, res) => {
 
         const company = await db.collection(COMPANIES_COLLECTION).findOne({ _id: new ObjectId(companyId) });
         if (!company) {
-            return res.status(404).json({ error: `Company with ID ${companyId} not found` });
+            return res.json({ 
+                error: true, 
+                message: `Company with ID ${companyId} not found.` 
+            });
         }
 
         const userAlreadyExists = company.users.some((u) => u.userId === userId);
         if (userAlreadyExists) {
-            return res.status(400).json({ error: `User with ID ${userId} is already part of the company` });
+            return res.json({ 
+                error: true, 
+                message: `User with ID ${userId} is already part of the company.` 
+            });
         }
 
         const result = await db.collection(COMPANIES_COLLECTION).updateOne(
@@ -344,13 +359,22 @@ export const addUserToCompany = async (req, res) => {
         );
 
         if (result.modifiedCount === 0) {
-            throw new Error('Failed to add user to company');
+            return res.json({ 
+                error: true, 
+                message: 'Failed to add the user to the company. Please try again.' 
+            });
         }
 
-        res.status(200).json({ message: 'User added to company successfully' });
+        res.json({ 
+            error: false, 
+            message: 'User added to company successfully.' 
+        });
     } catch (error) {
-        console.error('Error adding user to company:', error);
-        res.status(500).json({ error: 'Failed to add user to company' });
+        console.error('Error adding user to company:', error.message);
+        res.json({ 
+            error: true, 
+            message: 'An unexpected error occurred while adding the user to the company.' 
+        });
     }
 };
 
