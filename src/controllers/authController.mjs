@@ -13,8 +13,13 @@ export const registerUser = async (req, res) => {
         }
 
         const existingUser = await usersCollection.findOne({ $or: [{ username }, { email }] });
+
         if (existingUser) {
-            return res.json({ error: true, message: 'The username or email already exists.' });
+            const field = existingUser.username === username ? 'username' : 'email';
+            return res.json({
+                error: true,
+                message: `The ${field} is already in use. Please choose a different ${field}.`,
+            });
         }
 
         const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&#+-])[A-Za-z\d@$!%*?&#+-]{8,}$/;
