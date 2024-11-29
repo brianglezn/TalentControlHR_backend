@@ -29,16 +29,24 @@ export const getCompanyById = async (req, res) => {
 
 export const createCompany = async (req, res) => {
     const { name, description, industry, image } = req.body;
+
     try {
         const db = client.db(DB_NAME);
+
+        const existingCompany = await db.collection(COMPANIES_COLLECTION).findOne({ name: name.trim() });
+        if (existingCompany) {
+            return res.status(400).json({ error: 'A company with this name already exists.' });
+        }
+
         const newCompany = {
-            name,
-            description,
+            name: name.trim(),
+            description: description?.trim(),
             industry,
             image,
             teams: [],
             users: []
         };
+
         const result = await db.collection(COMPANIES_COLLECTION).insertOne(newCompany);
 
         if (!result.insertedId) {
