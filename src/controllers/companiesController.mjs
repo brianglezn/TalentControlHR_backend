@@ -60,7 +60,7 @@ export const createCompany = async (req, res) => {
             error: false,
             message: 'Company created successfully.',
             company: {
-                _id: result.insertedId,
+                _id: result.insertedId.toString(),
                 ...newCompany,
             },
         });
