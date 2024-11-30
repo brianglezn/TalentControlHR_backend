@@ -322,9 +322,18 @@ export const getUsersFromCompany = async (req, res) => {
             return res.status(404).json({ error: `Company with ID ${id} not found or no users exist in this company.` });
         }
 
-        const users = await db.collection('users').find({ _id: { $in: company.users } }).toArray();
+        const userIds = company.users.map((user) => new ObjectId(user.userId));
+        const users = await db.collection('users').find({ _id: { $in: userIds } }).toArray();
 
-        res.status(200).json(users);
+        const enrichedUsers = users.map((user) => {
+            const companyUser = company.users.find((cu) => cu.userId === user._id.toString());
+            return {
+                ...user,
+                roles: companyUser.roles,
+            };
+        });
+
+        res.status(200).json(enrichedUsers);
     } catch (error) {
         res.status(500).json({ error: 'Error retrieving users from company', details: error.message });
     }
