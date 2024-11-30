@@ -323,18 +323,20 @@ export const getUsersFromCompany = async (req, res) => {
         }
 
         const userIds = company.users.map((user) => new ObjectId(user.userId));
+
         const users = await db.collection('users').find({ _id: { $in: userIds } }).toArray();
 
         const enrichedUsers = users.map((user) => {
             const companyUser = company.users.find((cu) => cu.userId === user._id.toString());
             return {
                 ...user,
-                roles: companyUser.roles,
+                roles: companyUser ? companyUser.roles : [],
             };
         });
 
         res.status(200).json(enrichedUsers);
     } catch (error) {
+        console.error('Error retrieving users from company:', error);
         res.status(500).json({ error: 'Error retrieving users from company', details: error.message });
     }
 };
