@@ -125,6 +125,7 @@ export const addTeamToCompany = async (req, res) => {
         name,
         description: description || '',
         color: color || '#000000',
+        users: []
     };
 
     try {
@@ -258,6 +259,10 @@ export const addUserToTeam = async (req, res) => {
         const team = company.teams.find((team) => team.teamId.equals(new ObjectId(teamId)));
         if (!team) {
             return res.status(404).json({ error: `Team with ID ${teamId} not found in company.` });
+        }
+
+        if (!Array.isArray(team.users)) {
+            team.users = [];
         }
 
         if (team.users.includes(userId)) {
