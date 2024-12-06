@@ -255,7 +255,7 @@ export const addUserToTeam = async (req, res) => {
             return res.status(404).json({ error: `Company with ID ${id} not found.` });
         }
 
-        const team = company.teams.find((team) => team.teamId === teamId);
+        const team = company.teams.find((team) => team.teamId.toString() === teamId);
         if (!team) {
             return res.status(404).json({ error: `Team with ID ${teamId} not found in company.` });
         }
@@ -265,7 +265,7 @@ export const addUserToTeam = async (req, res) => {
         }
 
         const result = await db.collection(COMPANIES_COLLECTION).updateOne(
-            { _id: new ObjectId(id), 'teams.teamId': teamId },
+            { _id: new ObjectId(id), 'teams.teamId': new ObjectId(teamId) },
             { $push: { 'teams.$.users': userId } }
         );
 
