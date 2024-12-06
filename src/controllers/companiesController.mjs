@@ -245,17 +245,17 @@ export const getUsersFromTeam = async (req, res) => {
 };
 
 export const addUserToTeam = async (req, res) => {
-    const { id, teamId, userId } = req.params;
+    const { id: companyId, teamId, userId } = req.params;
 
     try {
         const db = client.db(DB_NAME);
 
-        const company = await db.collection(COMPANIES_COLLECTION).findOne({ _id: new ObjectId(id) });
+        const company = await db.collection(COMPANIES_COLLECTION).findOne({ _id: new ObjectId(companyId) });
         if (!company) {
-            return res.status(404).json({ error: `Company with ID ${id} not found.` });
+            return res.status(404).json({ error: `Company with ID ${companyId} not found.` });
         }
 
-        const team = company.teams.find((team) => team.teamId.toString() === teamId);
+        const team = company.teams.find((team) => team.teamId.equals(new ObjectId(teamId)));
         if (!team) {
             return res.status(404).json({ error: `Team with ID ${teamId} not found in company.` });
         }
@@ -265,11 +265,11 @@ export const addUserToTeam = async (req, res) => {
         }
 
         const result = await db.collection(COMPANIES_COLLECTION).updateOne(
-            { _id: new ObjectId(id), 'teams.teamId': new ObjectId(teamId) },
+            { _id: new ObjectId(companyId), 'teams.teamId': new ObjectId(teamId) },
             { $push: { 'teams.$.users': userId } }
         );
 
-        if (result.matchedCount === 0) {
+        if (result.modifiedCount === 0) {
             return res.status(404).json({ error: `Failed to add user to team.` });
         }
 
