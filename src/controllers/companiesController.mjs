@@ -124,7 +124,7 @@ export const addTeamToCompany = async (req, res) => {
         teamId: new ObjectId(),
         name,
         description: description || '',
-        color: color || '#000000',
+        color: color || '#6b7280',
         users: []
     };
 
@@ -291,16 +291,8 @@ export const deleteUserFromTeam = async (req, res) => {
     try {
         const db = client.db(DB_NAME);
 
-        const company = await db.collection(COMPANIES_COLLECTION).findOne(
-            { _id: new ObjectId(id), 'teams.teamId': teamId }
-        );
-
-        if (!company) {
-            return res.status(404).json({ error: `Team with ID ${teamId} not found in the specified company with ID ${id}` });
-        }
-
         const result = await db.collection(COMPANIES_COLLECTION).updateOne(
-            { _id: new ObjectId(id), 'teams.teamId': teamId },
+            { _id: new ObjectId(id), 'teams.teamId': new ObjectId(teamId) },
             { $pull: { 'teams.$.users': userId } }
         );
 
