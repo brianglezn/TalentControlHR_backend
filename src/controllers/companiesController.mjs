@@ -250,17 +250,18 @@ export const addUserToTeam = async (req, res) => {
     try {
         const db = client.db(DB_NAME);
 
-        const company = await db.collection(COMPANIES_COLLECTION).findOne(
-            { _id: new ObjectId(id), 'teams.teamId': teamId }
-        );
-
+        const company = await db.collection(COMPANIES_COLLECTION).findOne({ _id: new ObjectId(id) });
         if (!company) {
-            return res.status(404).json({ error: `Team with ID ${teamId} not found in the specified company with ID ${id}` });
+            return res.status(404).json({ error: `Company with ID ${id} not found.` });
         }
 
-        const team = company.teams.find(team => team.teamId === teamId);
-        if (team.users?.includes(userId)) {
-            return res.status(400).json({ error: `User with ID ${userId} already belongs to the team with ID ${teamId}` });
+        const team = company.teams.find((team) => team.teamId === teamId);
+        if (!team) {
+            return res.status(404).json({ error: `Team with ID ${teamId} not found in company.` });
+        }
+
+        if (team.users.includes(userId)) {
+            return res.status(400).json({ error: `User with ID ${userId} already in the team.` });
         }
 
         const result = await db.collection(COMPANIES_COLLECTION).updateOne(
@@ -269,12 +270,13 @@ export const addUserToTeam = async (req, res) => {
         );
 
         if (result.matchedCount === 0) {
-            return res.status(404).json({ error: `Team with ID ${teamId} not found in the specified company with ID ${id}` });
+            return res.status(404).json({ error: `Failed to add user to team.` });
         }
 
-        res.status(200).json({ message: 'User successfully added to the team' });
+        res.status(200).json({ message: 'User successfully added to team.' });
     } catch (error) {
-        res.status(500).json({ error: 'Error adding user to team', details: error.message });
+        console.error('Error adding user to team:', error);
+        res.status(500).json({ error: 'Error adding user to team.', details: error.message });
     }
 };
 
